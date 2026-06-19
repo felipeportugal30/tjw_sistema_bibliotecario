@@ -20,7 +20,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/autores")
+@RequestMapping("autores")
 @RequiredArgsConstructor
 public class AutorController {
     
@@ -47,7 +47,7 @@ public class AutorController {
     }
 
     @DeleteMapping("/{autorId}")
-    public ResponseEntity<AutorResponseDto> deletarAutorId(@PathVariable Long autorId) {
+    public ResponseEntity<String> deletarAutorId(@PathVariable Long autorId) {
         return ResponseEntity.status(204).body(autorService.deletarAutorId(autorId));
     }
 }

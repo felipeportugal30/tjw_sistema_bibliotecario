@@ -53,17 +53,17 @@ public class AutorService {
         if (request.getNacionalidade() != null) autorModificado.setNacionalidade(request.getNacionalidade());
         if (request.getAnoNascimento() != null) autorModificado.setAnoNascimento(request.getAnoNascimento());
 
-        Autor autorSalvo = autorRepository.save(autorModificado);
+        autorRepository.save(autorModificado);
 
-        return new AutorResponseDto("Autor atualizado com sucesso: " + autorId, autorSalvo);
+        return new AutorResponseDto("Autor atualizado com sucesso: " + autorId, autorModificado);
     }
 
-    public AutorResponseDto deletarAutorId(Long autorId) {
+    public String deletarAutorId(Long autorId) {
         Autor autor = autorRepository.findById(autorId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Autor não encontrado: " + autorId));
 
         autorRepository.delete(autor);
 
-        return new AutorResponseDto("Autor deletado com sucesso.", autor);
+        return "Autor deletado com sucesso." + autorId;
     }
 }
