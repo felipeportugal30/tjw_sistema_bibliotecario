@@ -1,0 +1,85 @@
+services:
+  db-autores:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: db_autores
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - autor-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks: [biblioteca-net]
+
+  db-livros:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: db_livros
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - livro-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks: [biblioteca-net]
+
+  autor-ms:
+    build: ./autor
+    environment:
+      DB_HOST: db-autores
+      DB_PORT: 5432
+      DB_NAME: db_autores
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      db-autores:
+        condition: service_healthy
+    networks: [biblioteca-net]
+
+  livro-ms:
+    build: ./livro
+    environment:
+      DB_HOST: db-livros
+      DB_PORT: 5432
+      DB_NAME: db_livros
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      db-livros:
+        condition: service_healthy
+    networks: [biblioteca-net]
+
+  front-ms:
+    build: ./front
+    environment:
+      AUTOR_MS_URL: http://autor-ms:8082
+      LIVRO_MS_URL: http://livro-ms:8081
+    depends_on:
+      - autor-ms
+      - livro-ms
+    networks: [biblioteca-net]
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - front-ms
+      - livro-ms
+      - autor-ms
+    networks: [biblioteca-net]
+
+volumes:
+  autor-db-data:
+  livro-db-data:
+
+networks:
+  biblioteca-net:
