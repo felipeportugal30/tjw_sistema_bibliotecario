@@ -11,15 +11,15 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class AutorRequestDto {
-    
-    @NotBlank
+
+    @NotBlank(message = "não pode ser vazio")
     private String nome;
 
-    @NotBlank
+    @NotBlank(message = "não pode ser vazio")
     private String nacionalidade;
 
-    @NotNull
-    @Positive
+    @NotNull(message = "é obrigatório")
+    @Positive(message = "deve ser um valor positivo")
     private Integer anoNascimento;
 
 }
