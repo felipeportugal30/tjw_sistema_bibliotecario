@@ -9,31 +9,19 @@ Nginx.
 
 Seis containers orquestrados via Docker Compose:
 
-```
-[Browser]
-    |
-[nginx :80]  - API Gateway
-    |- /              -> front-ms  :8080  (Thymeleaf)
-    |- /api/livros     -> livro-ms  :8081  (REST + PostgreSQL)
-    |- /api/autores    -> autor-ms  :8082  (REST + PostgreSQL)
-
-front-ms  -> imagem própria, consome livro-ms e autor-ms via RestClient
-livro-ms  -> imagem própria + banco db-livros (PostgreSQL)
-autor-ms  -> imagem própria + banco db-autores (PostgreSQL)
-nginx     -> imagem oficial + nginx.conf
-```
+![Arquitetura do sistema](arquitetura_tjw.drawio.png)
 
 Cada microsserviço REST tem seu próprio banco PostgreSQL. `livro-ms` **não**
 faz JOIN com a tabela de autores: ele armazena apenas `autorId` (referência
 lógica, sem FK no banco). Quem resolve o nome do autor de cada livro é o
 `front-ms`, consultando `autor-ms` via HTTP antes de renderizar a página.
 
-| Serviço     | Tecnologia                          | Responsabilidade                                                   |
-|-------------|--------------------------------------|----------------------------------------------------------------------|
-| `nginx`     | Nginx (imagem oficial)               | Gateway: roteamento, CORS centralizado, ponto único de entrada       |
-| `front-ms`  | Spring Boot + Thymeleaf + RestClient | Interface web; consome `livro-ms`/`autor-ms` e renderiza HTML        |
-| `livro-ms`  | Spring Boot + REST + JPA             | CRUD de livros; guarda `autorId` como `Long`, não conhece `autor-ms` |
-| `autor-ms`  | Spring Boot + REST + JPA             | CRUD de autores; serviço independente                               |
+| Serviços        | Tecnologia                          | Responsabilidade                                                   |
+|----------------|--------------------------------------|----------------------------------------------------------------------|
+| `nginx`        | Nginx (imagem oficial)               | Gateway: roteamento, CORS centralizado, ponto único de entrada       |
+| `front-ms`     | Spring Boot + Thymeleaf + RestClient | Interface web; consome `livro-ms`/`autor-ms` e renderiza HTML        |
+| `livro-ms`     | Spring Boot + REST + JPA             | CRUD de livros; guarda `autorId` como `Long`, não conhece `autor-ms` |
+| `autor-ms`     | Spring Boot + REST + JPA             | CRUD de autores; serviço independente                               |
 
 ## Como executar
 

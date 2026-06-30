@@ -33,7 +33,8 @@ public class LivroWebController {
     private final AutorClient autorClient;
 
     @GetMapping("/livros")
-    public String listar(@RequestParam(required = false) Boolean disponivel, Model model) {
+    public String listar(@RequestParam(required = false) Boolean disponivel,
+                          @RequestParam(required = false) Long buscarId, Model model) {
         try {
             List<LivroDto> livros = livroClient.listarLivros(disponivel);
             model.addAttribute("livros", livros.stream().map(this::paraView).toList());
@@ -42,7 +43,22 @@ public class LivroWebController {
             model.addAttribute("erro", ex.getMessage());
         }
         model.addAttribute("filtroDisponivel", disponivel);
+        model.addAttribute("buscarId", buscarId);
+        if (buscarId != null) {
+            pesquisarPorId(buscarId, model);
+        }
         return "livros/lista";
+    }
+
+    private void pesquisarPorId(Long buscarId, Model model) {
+        try {
+            livroClient.buscarPorId(buscarId)
+                .ifPresentOrElse(
+                    livro -> model.addAttribute("livroResultado", paraView(livro)),
+                    () -> model.addAttribute("buscarErro", "Livro não encontrado: " + buscarId));
+        } catch (ServicoIndisponivelException ex) {
+            model.addAttribute("buscarErro", ex.getMessage());
+        }
     }
 
     @GetMapping("/livros/{id}")

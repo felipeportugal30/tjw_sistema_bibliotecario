@@ -14,53 +14,107 @@
     <div th:if="${mensagemErro}" class="alert alert-danger" th:text="${mensagemErro}"></div>
     <div th:if="${erro}" class="alert alert-warning" th:text="${erro}"></div>
 
-    <div class="d-flex justify-content-between mb-3">
-        <a href="/livros/novo" class="btn btn-primary">+ Novo Livro</a>
-        <div class="btn-group">
-            <a href="/livros" class="btn btn-outline-secondary"
-               th:classappend="${filtroDisponivel == null} ? 'active' : ''">Todos</a>
-            <a href="/livros?disponivel=true" class="btn btn-outline-secondary"
-               th:classappend="${filtroDisponivel != null and filtroDisponivel} ? 'active' : ''">Disponíveis</a>
-            <a href="/livros?disponivel=false" class="btn btn-outline-secondary"
-               th:classappend="${filtroDisponivel != null and !filtroDisponivel} ? 'active' : ''">Indisponíveis</a>
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link" th:classappend="${buscarId == null} ? 'active' : ''"
+                    data-bs-toggle="tab" data-bs-target="#tab-lista" type="button">Lista</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" th:classappend="${buscarId != null} ? 'active' : ''"
+                    data-bs-toggle="tab" data-bs-target="#tab-busca" type="button">Pesquisar por ID</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade" th:classappend="${buscarId == null} ? 'show active' : ''" id="tab-lista">
+            <div class="d-flex justify-content-between mb-3">
+                <a href="/livros/novo" class="btn btn-primary">+ Novo Livro</a>
+                <div class="btn-group">
+                    <a href="/livros" class="btn btn-outline-secondary"
+                       th:classappend="${filtroDisponivel == null} ? 'active' : ''">Todos</a>
+                    <a href="/livros?disponivel=true" class="btn btn-outline-secondary"
+                       th:classappend="${filtroDisponivel != null and filtroDisponivel} ? 'active' : ''">Disponíveis</a>
+                    <a href="/livros?disponivel=false" class="btn btn-outline-secondary"
+                       th:classappend="${filtroDisponivel != null and !filtroDisponivel} ? 'active' : ''">Indisponíveis</a>
+                </div>
+            </div>
+
+            <table class="table table-striped" th:if="${livros != null and not #lists.isEmpty(livros)}">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Gênero</th>
+                    <th>Ano</th>
+                    <th>Disponível</th>
+                    <th>Autor</th>
+                    <th>Ações</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="livro : ${livros}">
+                    <td th:text="${livro.id}"></td>
+                    <td><a th:href="@{/livros/{id}(id=${livro.id})}" th:text="${livro.titulo}"></a></td>
+                    <td th:text="${livro.genero}"></td>
+                    <td th:text="${livro.anoPublicacao}"></td>
+                    <td>
+                        <span th:class="${livro.disponivel} ? 'badge bg-success' : 'badge bg-secondary'"
+                              th:text="${livro.disponivel} ? 'Sim' : 'Não'"></span>
+                    </td>
+                    <td th:text="${livro.nomeAutor}"></td>
+                    <td>
+                        <a th:href="@{/livros/{id}/editar(id=${livro.id})}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                        <form th:action="@{/livros/{id}/excluir(id=${livro.id})}" method="post" class="d-inline livro-excluir-form"
+                              th:attr="data-titulo=${livro.titulo}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <p th:if="${livros != null and #lists.isEmpty(livros)}">Nenhum livro cadastrado.</p>
+        </div>
+
+        <div class="tab-pane fade" th:classappend="${buscarId != null} ? 'show active' : ''" id="tab-busca">
+            <form method="get" action="/livros" class="d-flex gap-2 mb-3" style="max-width: 400px;">
+                <input type="number" name="buscarId" class="form-control" placeholder="ID do livro"
+                       th:value="${buscarId}" min="1" required>
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </form>
+
+            <div th:if="${buscarErro}" class="alert alert-warning" th:text="${buscarErro}"></div>
+
+            <div th:if="${livroResultado}" class="card" style="max-width: 500px;">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${livroResultado.titulo}"></h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">ID</dt>
+                        <dd class="col-sm-8" th:text="${livroResultado.id}"></dd>
+
+                        <dt class="col-sm-4">Gênero</dt>
+                        <dd class="col-sm-8" th:text="${livroResultado.genero}"></dd>
+
+                        <dt class="col-sm-4">Ano de Publicação</dt>
+                        <dd class="col-sm-8" th:text="${livroResultado.anoPublicacao}"></dd>
+
+                        <dt class="col-sm-4">Disponível</dt>
+                        <dd class="col-sm-8">
+                            <span th:class="${livroResultado.disponivel} ? 'badge bg-success' : 'badge bg-secondary'"
+                                  th:text="${livroResultado.disponivel} ? 'Sim' : 'Não'"></span>
+                        </dd>
+
+                        <dt class="col-sm-4">Autor</dt>
+                        <dd class="col-sm-8" th:text="${livroResultado.nomeAutor}"></dd>
+                    </dl>
+                    <a th:href="@{/livros/{id}/editar(id=${livroResultado.id})}" class="btn btn-sm btn-outline-secondary mt-3">Editar</a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <table class="table table-striped" th:if="${livros != null and not #lists.isEmpty(livros)}">
-        <thead>
-        <tr>
-            <th>Título</th>
-            <th>Gênero</th>
-            <th>Ano</th>
-            <th>Disponível</th>
-            <th>Autor</th>
-            <th>Ações</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="livro : ${livros}">
-            <td><a th:href="@{/livros/{id}(id=${livro.id})}" th:text="${livro.titulo}"></a></td>
-            <td th:text="${livro.genero}"></td>
-            <td th:text="${livro.anoPublicacao}"></td>
-            <td>
-                <span th:class="${livro.disponivel} ? 'badge bg-success' : 'badge bg-secondary'"
-                      th:text="${livro.disponivel} ? 'Sim' : 'Não'"></span>
-            </td>
-            <td th:text="${livro.nomeAutor}"></td>
-            <td>
-                <a th:href="@{/livros/{id}/editar(id=${livro.id})}" class="btn btn-sm btn-outline-secondary">Editar</a>
-                <form th:action="@{/livros/{id}/excluir(id=${livro.id})}" method="post" class="d-inline livro-excluir-form"
-                      th:attr="data-titulo=${livro.titulo}">
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    <p th:if="${livros != null and #lists.isEmpty(livros)}">Nenhum livro cadastrado.</p>
-
     <footer th:replace="~{layout/footer :: footer}"></footer>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="none">
     document.querySelectorAll('.livro-excluir-form').forEach(function (form) {
         form.addEventListener('submit', function (event) {

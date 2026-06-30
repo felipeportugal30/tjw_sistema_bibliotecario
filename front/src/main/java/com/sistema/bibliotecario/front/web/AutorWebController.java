@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.sistema.bibliotecario.front.client.AutorClient;
@@ -27,14 +28,29 @@ public class AutorWebController {
     private final AutorClient autorClient;
 
     @GetMapping("/autores")
-    public String listar(Model model) {
+    public String listar(@RequestParam(required = false) Long buscarId, Model model) {
         try {
             model.addAttribute("autores", autorClient.listarAutores());
         } catch (ServicoIndisponivelException ex) {
             model.addAttribute("autores", List.of());
             model.addAttribute("erro", ex.getMessage());
         }
+        model.addAttribute("buscarId", buscarId);
+        if (buscarId != null) {
+            pesquisarPorId(buscarId, model);
+        }
         return "autores/lista";
+    }
+
+    private void pesquisarPorId(Long buscarId, Model model) {
+        try {
+            autorClient.buscarPorId(buscarId)
+                .ifPresentOrElse(
+                    autor -> model.addAttribute("autorResultado", autor),
+                    () -> model.addAttribute("buscarErro", "Autor não encontrado: " + buscarId));
+        } catch (ServicoIndisponivelException ex) {
+            model.addAttribute("buscarErro", ex.getMessage());
+        }
     }
 
     @GetMapping("/autores/novo")
